@@ -8,6 +8,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tokio::{self, sync::RwLock};
 
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -57,7 +58,7 @@ struct AnswerId(String);
 struct QuestionId(String);
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Answer {
+pub struct Answer {
     id: String,
     content: String,
     question_id: QuestionId,
@@ -65,7 +66,8 @@ struct Answer {
 
 type QuestionMap = HashMap<String, Question>;
 type AnswerMap = HashMap<String, Answer>;
-struct Store {
+#[allow(dead_code)]
+pub struct Store {
     questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
     answers: Arc<RwLock<HashMap<AnswerId, Answer>>>,
     file: File,
@@ -75,7 +77,7 @@ struct Store {
 
 //type QuestionMap = HashMap<
 impl Store {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Store {
             questions: Arc::new(RwLock::new(Self::init())),
             answers: Arc::new(RwLock::new(HashMap::new())),
@@ -125,14 +127,14 @@ impl Store {
         Ok(StatusCode::OK)
     }
 
-    pub fn addQ(&mut self, question: Question) -> Result<(), QuestionBaseErr> {
+    pub fn add_q(&mut self, question: Question) -> Result<(), QuestionBaseErr> {
         let id = question.id.clone();
         self.questionmap.insert(id, question);
         self.write_question()?;
         Ok(())
     }
 
-    pub fn addA(&mut self, answer: Answer) -> Result<(), QuestionBaseErr> {
+    pub fn add_a(&mut self, answer: Answer) -> Result<(), QuestionBaseErr> {
         let id = answer.id.clone();
         self.answermap.insert(id, answer);
         self.write_question()?;
@@ -141,7 +143,7 @@ impl Store {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Question {
+pub struct Question {
     id: String,
     title: String,
     content: String,
@@ -175,33 +177,33 @@ impl IntoResponse for &Question {
         (StatusCode::OK, Json(&self)).into_response()
     }
 }
-
+#[allow(unused_variables)]
 pub async fn add_question(
     State(store): State<Arc<RwLock<Store>>>,
     Json(question): Json<Question>,
 ) -> Response {
-    match store.write().await.addQ(question) {
+    match store.write().await.add_q(question) {
         Ok(()) => StatusCode::OK.into_response(),
         Err(e) => "Error in adding question".into_response(),
     }
 }
-
+#[allow(unused_variables)]
 pub async fn add_answer(
     State(store): State<Arc<RwLock<Store>>>,
     Json(answer): Json<Answer>,
 ) -> Response {
-    match store.write().await.addA(answer) {
+    match store.write().await.add_a(answer) {
         Ok(()) => StatusCode::OK.into_response(),
         Err(e) => "Error in adding question".into_response(),
     }
 }
-
+#[allow(unused_variables)]
 pub async fn update_question(
     State(store): State<Arc<RwLock<Store>>>,
-    Path(questionId): Path<String>,
+    Path(question_id): Path<String>,
     Json(question): Json<Question>,
 ) -> Response {
-    match store.write().await.update(&questionId, question) {
+    match store.write().await.update(&question_id, question) {
         Ok(_) => StatusCode::OK.into_response(),
         //Some(q) => *q = question,
         Err(e) => "Error in update".into_response(),
@@ -213,22 +215,22 @@ pub async fn update_question(
 
     //StatusCode::OK.into_response()
 }
-
+#[allow(unused_variables)]
 pub async fn delete_question(
     State(store): State<Arc<RwLock<Store>>>,
-    Path(questionId): Path<String>,
+    Path(question_id): Path<String>,
 ) -> Response {
-    match store.write().await.delete(&questionId) {
+    match store.write().await.delete(&question_id) {
         //Ok(()) =>
         Ok(()) => return "Item Deleted".into_response(),
         Err(e) => StatusCode::OK.into_response(),
         //Err(e) => QuestionBaseError::response(StatusCode::BAD_REQUEST, e),
     }
 }
-
+#[allow(unused_variables)]
 pub async fn get_questions(
     State(store): State<Arc<RwLock<Store>>>,
-    Path(questionId): Path<String>,
+    Path(question_id): Path<String>,
 ) -> Response {
     let question = Question::new(
         from_str("1").expect("No id provided"),
@@ -245,6 +247,7 @@ pub async fn get_questions(
 //        None => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
 //    }
 //}
+#[allow(unused_variables)]
 #[tokio::main]
 async fn main() {
     //let apis = Router::new()
