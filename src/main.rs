@@ -18,6 +18,7 @@ use axum::{
 };
 extern crate serde_json;
 extern crate thiserror;
+//Enum for question base error
 #[derive(Debug, thiserror::Error, Serialize)]
 pub enum QuestionBaseErr {
     #[error("question already exists: {0}")]
@@ -38,6 +39,7 @@ impl From<std::io::Error> for QuestionBaseErr {
     }
 }
 
+//Struct for Question Base error
 #[derive(Debug)]
 pub struct QuestionBaseError {
     pub status: StatusCode,
@@ -50,13 +52,15 @@ pub struct QuestionBaseError {
 //       (status, Json(error)).into_response()
 //   }
 //}
-
+//Struct for Answer ID
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq, Hash)]
 struct AnswerId(String);
 
+//Struct for Question ID
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 struct QuestionId(String);
 
+//Struct for Answer containting content,Question ID and String
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Answer {
     id: String,
@@ -64,8 +68,11 @@ pub struct Answer {
     question_id: QuestionId,
 }
 
+//Hash maps for Questoin and Answer
 type QuestionMap = HashMap<String, Question>;
 type AnswerMap = HashMap<String, Answer>;
+
+//Struct for store containing file both hashmaps, question and answer
 #[allow(dead_code)]
 pub struct Store {
     questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
@@ -91,7 +98,7 @@ impl Store {
         let file = include_str!("../questions.json");
         serde_json::from_str(file).expect("can't read questions.json")
     }
-
+    //Writes question to data base
     fn write_question(&mut self) -> Result<(), std::io::Error> {
         let json = serde_json::to_string(&self.questionmap).unwrap();
         self.file.rewind()?;
@@ -99,7 +106,7 @@ impl Store {
         self.file.write_all(json.as_bytes())?;
         self.file.sync_all()
     }
-
+    //deletes question from database
     pub fn delete(&mut self, index: &str) -> Result<(), QuestionBaseErr> {
         //   if !self.jokemap.contains_key(index) {
         //       return Err(QuestionBaseErr::QuestionDoesNotExist(index.to_string()));
@@ -108,7 +115,7 @@ impl Store {
         self.write_question()?;
         Ok(())
     }
-
+    //Updates a question in the database
     pub fn update(
         &mut self,
         index: &str,
@@ -126,14 +133,14 @@ impl Store {
         self.write_question()?;
         Ok(StatusCode::OK)
     }
-
+    //Adds question to the data base
     pub fn add_q(&mut self, question: Question) -> Result<(), QuestionBaseErr> {
         let id = question.id.clone();
         self.questionmap.insert(id, question);
         self.write_question()?;
         Ok(())
     }
-
+    //Adds an answer to the database
     pub fn add_a(&mut self, answer: Answer) -> Result<(), QuestionBaseErr> {
         let id = answer.id.clone();
         self.answermap.insert(id, answer);
@@ -142,6 +149,7 @@ impl Store {
     }
 }
 
+//Struct for question containing id,title, content and tags
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Question {
     id: String,
@@ -177,6 +185,7 @@ impl IntoResponse for &Question {
         (StatusCode::OK, Json(&self)).into_response()
     }
 }
+//Handler for adding a question
 #[allow(unused_variables)]
 pub async fn add_question(
     State(store): State<Arc<RwLock<Store>>>,
@@ -187,6 +196,7 @@ pub async fn add_question(
         Err(e) => "Error in adding question".into_response(),
     }
 }
+//Handler for adding an answer
 #[allow(unused_variables)]
 pub async fn add_answer(
     State(store): State<Arc<RwLock<Store>>>,
@@ -197,6 +207,7 @@ pub async fn add_answer(
         Err(e) => "Error in adding question".into_response(),
     }
 }
+//Handler for updating a question
 #[allow(unused_variables)]
 pub async fn update_question(
     State(store): State<Arc<RwLock<Store>>>,
@@ -215,6 +226,7 @@ pub async fn update_question(
 
     //StatusCode::OK.into_response()
 }
+//Handler for deleting a question
 #[allow(unused_variables)]
 pub async fn delete_question(
     State(store): State<Arc<RwLock<Store>>>,
@@ -227,6 +239,7 @@ pub async fn delete_question(
         //Err(e) => QuestionBaseError::response(StatusCode::BAD_REQUEST, e),
     }
 }
+//Handler for getting a question
 #[allow(unused_variables)]
 pub async fn get_questions(
     State(store): State<Arc<RwLock<Store>>>,
@@ -247,6 +260,7 @@ pub async fn get_questions(
 //        None => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
 //    }
 //}
+//Main for starting the server and where the handler are called based on the http link
 #[allow(unused_variables)]
 #[tokio::main]
 async fn main() {
