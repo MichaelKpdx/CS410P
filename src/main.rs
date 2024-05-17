@@ -4,28 +4,42 @@ mod base_error;
 mod question;
 mod store;
 
+#[allow(unused_imports)]
 use answer::*;
 use api::*;
 use base_error::*;
 use question::*;
 use store::*;
+use std::error::Error;
+use std::collections::HashSet;
 
+//#[warn(unused_imports)]
 use serde::{Deserialize, Serialize};
-use serde_json::from_str;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Error;
-use std::io::{ErrorKind, Seek, Write};
-use std::str::FromStr;
+//#[warn(unused_imports)]
+//#[allow(unused_imports)]
+//use serde_json::from_str;
+//use std::collections::HashMap;
+//use std::fs::File;
+//use std::io::Error;
+//use std::io::{ErrorKind, Seek, Write};
+//use std::str::FromStr;
 use std::sync::Arc;
 use tokio::{self, sync::RwLock};
 
+#[allow(unused_imports)]
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query,State},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::{delete, get, post, put},
     Json, Router,
+};
+
+#[allow(unused_imports)]
+use sqlx::{
+    self,
+    postgres::{PgConnection,PgPool,PgRow,Postgres},
+    Pool,Row,
 };
 extern crate serde_json;
 extern crate thiserror;
@@ -47,23 +61,40 @@ extern crate thiserror;
 #[allow(unused_variables)]
 #[tokio::main]
 async fn main() {
+    print!("PROGRAM STARTED 2\n");
+
     //let apis = Router::new()
     //.route("/question",get(get_questions));
-    //let store = Arc::new(RwLock::new(store));
-    let apis = Router::new()
+     let store = Store::new().await.unwrap_or_else(|e| {
+        tracing::error!("store: {}", e);
+        print!("PROGRAM IS EXITING 2\n");
+        std::process::exit(3);
+    });
+    let store = Arc::new(RwLock::new(store)); 
+  //  let store = Arc::new(RwLock::new(store));
+    /* let apis = Router::new()
         .route("/question", get(get_questions))
         .route("/question/add", post(add_answer))
         .route("/question/delete/:id", delete(delete_question))
-        .route("/question/:id", put(update_question));
+        .route("/question/:id", put(update_question)); */
+    print!("PROGRAM IS RUNNING\n");
+
     let web = Router::new().route("/", get(|| async { "Hello, World!" }))
-        .route("/question", get(get_questions));
+        .route("/random", get(handler_random))
+        .with_state(store);
+    
+    print!("PROGRAM AFTER WEB\n");
+
     //.route("/question",get(get_questions))
     //.with_state(store);
 
     //   let app = Router::new()
     //       .route("/", get(handler_index))
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    print!("PROGRAM AFTER LISTENER\n");
+
     axum::serve(listener, web).await.unwrap();
+
+    print!("PROGRAM SERVER\n");
+
 }

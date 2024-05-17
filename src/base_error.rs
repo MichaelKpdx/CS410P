@@ -14,11 +14,19 @@ pub enum QuestionBaseErr {
     QuestionDoesNotExist(String),
     #[error("Question paylor unprocessable")]
     QuestionUnprocessable(String),
+    #[error("database error: {0}")]
+    DatabaseError(String),
 }
 
 impl From<std::io::Error> for QuestionBaseErr {
     fn from(e: std::io::Error) -> Self {
         QuestionBaseErr::QuestionBaseIoError(e.to_string())
+    }
+}
+
+impl From<sqlx::Error> for QuestionBaseErr{
+    fn from(e: sqlx::Error) -> Self {
+        QuestionBaseErr::DatabaseError(e.to_string())
     }
 }
 

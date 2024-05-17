@@ -12,4 +12,4 @@ pub struct Answer {
 }
 
 //Hash maps for Question and Answer
-pub type AnswerMap = HashMap<String, Answer>;
+//pub type AnswerMap = HashMap<String, Answer>;

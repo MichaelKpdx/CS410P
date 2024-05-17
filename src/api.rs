@@ -1,7 +1,7 @@
 use crate::*;
 
 //Handler for adding a question
-#[allow(unused_variables, dead_code)]
+/* #[allow(unused_variables, dead_code)]
 pub async fn add_question(
     State(store): State<Arc<RwLock<Store>>>,
     Json(question): Json<Question>,
@@ -10,8 +10,8 @@ pub async fn add_question(
         Ok(()) => StatusCode::OK.into_response(),
         Err(e) => "Error in adding question".into_response(),
     }
-}
-//Handler for adding an answer
+} */
+/* //Handler for adding an answer
 #[allow(unused_variables)]
 pub async fn add_answer(
     State(store): State<Arc<RwLock<Store>>>,
@@ -21,9 +21,9 @@ pub async fn add_answer(
         Ok(()) => StatusCode::OK.into_response(),
         Err(e) => "Error in adding question".into_response(),
     }
-}
+} */
 //Handler for updating a question
-#[allow(unused_variables)]
+/* #[allow(unused_variables)]
 pub async fn update_question(
     State(store): State<Arc<RwLock<Store>>>,
     Path(question_id): Path<String>,
@@ -37,12 +37,12 @@ pub async fn update_question(
         //     StatusCode::UNPROCESSABLE_ENTITY,
         //     QuestionBaseErr::QuestionUnprocessable(e),
         //)
-    }
+    } */
 
     //StatusCode::OK.into_response()
-}
+//}
 //Handler for deleting a question
-#[allow(unused_variables)]
+/* #[allow(unused_variables)]
 pub async fn delete_question(
     State(store): State<Arc<RwLock<Store>>>,
     Path(question_id): Path<String>,
@@ -53,20 +53,25 @@ pub async fn delete_question(
         Err(e) => StatusCode::OK.into_response(),
         //Err(e) => QuestionBaseError::response(StatusCode::BAD_REQUEST, e),
     }
-}
+} */
 //Handler for getting a question
-#[allow(unused_variables)]
+/* #[allow(unused_variables)]
 pub async fn get_questions(
-    //State(store): State<Arc<RwLock<Store>>>,
+    State(store): State<Arc<RwLock<Store>>>,
     //State(store),
     Path(question_id): Path<String>
     //Path(question_id): Path<String>,
 ) -> Response {
-    let question = Question::new(
-        from_str("1").expect("No id provided"),
-        "First Question".to_string(),
-        "Content of quetsion".to_string(),
-        Some(vec!["faq".to_string()]),
-    );
-    question.into_response()
+    match store.read().await.
+} */
+
+pub async fn handler_random(
+    State(store): State<Arc<RwLock<Store>>>,
+  //  Query(params): Query<IndexParams>,
+) -> Response {
+    let store = store.read().await;
+    match store.get_random().await {
+        Ok(_question) => return "Question delivered".into_response(),
+        _e => "error in random".into_response(),
+    }
 }
