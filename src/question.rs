@@ -29,9 +29,9 @@ pub struct Question {
     pub id: String,
     pub title: String,
     pub content: String,
+    //pub tags: String,
     pub tags: Option<HashSet<String>>,
 }
-
 impl Question {
     pub fn new(id: String, title: String, content: String, tags: Option<HashSet<String>>) -> Self {
         Question {
@@ -41,4 +41,8 @@ impl Question {
             tags,
         }
     }
+}
+pub fn format_tags(tags: &HashSet<String>) -> String {
+    let taglist: Vec<&str> = tags.iter().map(String::as_ref).collect();
+    taglist.join(",")
 }

@@ -39,7 +39,7 @@ pub async fn update_question(
         //)
     } */
 
-    //StatusCode::OK.into_response()
+//StatusCode::OK.into_response()
 //}
 //Handler for deleting a question
 /* #[allow(unused_variables)]
@@ -65,13 +65,201 @@ pub async fn get_questions(
     match store.read().await.
 } */
 
-pub async fn handler_random(
-    State(store): State<Arc<RwLock<Store>>>,
-  //  Query(params): Query<IndexParams>,
-) -> Response {
-    let store = store.read().await;
-    match store.get_random().await {
-        Ok(_question) => return "Question delivered".into_response(),
-        _e => "error in random".into_response(),
+//Struct that calls index.html
+#[allow(dead_code)]
+#[derive(Template)]
+#[template(path = "index.html")]
+pub struct IndexTemplate<'a> {
+    question: Option<&'a Question>,
+    tags: Option<String>,
+    error: Option<String>,
+}
+#[allow(dead_code)]
+impl<'a> IndexTemplate<'a> {
+    fn question(question: &'a Question) -> Self {
+        Self {
+            question: Some(question),
+            tags: question.tags.as_ref().map(format_tags),
+            error: None,
+        }
+    }
+
+    fn error(error: String) -> Self {
+        Self {
+            question: None,
+            tags: None,
+            error: Some(error),
+        }
     }
 }
+//struct for adding a question parameters
+#[derive(Deserialize)]
+pub struct AddParams {
+    id: String,
+    new_title: String,
+    new_content: String,
+    new_tags: Option<String>,
+}
+
+//struct for id parameters
+#[derive(Deserialize)]
+pub struct IndexParams {
+    id: Option<String>,
+}
+
+//parses tags based on ','
+fn parse_tags(tags: Option<String>) -> Option<HashSet<String>> {
+    let tags = tags?;
+    if tags.is_empty() {
+        return None;
+    }
+    let tags: HashSet<String> = tags.split(',').map(str::trim).map(str::to_string).collect();
+    if tags.is_empty() {
+        None
+    } else {
+        Some(tags)
+    }
+}
+
+//Handler for getting a random question
+pub async fn handler_random(
+    State(store): State<Arc<RwLock<Store>>>,
+    Query(params): Query<IndexParams>,
+) -> Response {
+    let store = store.read().await;
+
+    let question = if let Some(id) = params.id {
+        store.get(&id).await
+    } else {
+        match store.get_random().await {
+            Ok(question) => return IndexTemplate::question(&question).into_response(),
+            e => e,
+        }
+    };
+
+    match question {
+        Ok(question) => (StatusCode::OK, IndexTemplate::question(&question)).into_response(),
+        Err(QuestionBaseErr::QuestionDoesNotExist(_id)) => {
+            "error in handler random".into_response()
+        }
+        Err(_e) => "internal server error 2".into_response(),
+    }
+}
+
+//Struct that calls addQuestion.html
+#[allow(dead_code)]
+#[derive(Template)]
+#[template(path = "addQuestion.html")]
+pub struct AddTemplate {
+    stylesheet: &'static str,
+    //error: Option<String>,
+}
+
+impl AddTemplate {
+    fn new() -> Self {
+        Self {
+            stylesheet: "/addQuestion.css",
+        }
+    }
+}
+
+//Handler that calls AddTemplate to call addQuestion.html
+pub async fn handler_tell() -> Response {
+    //  let error: Option<String> = "session_error".unwrap_or(None).clone;
+    (StatusCode::OK, AddTemplate::new()).into_response()
+}
+
+//Handler for deleting a question
+pub async fn handler_delete(
+    State(store): State<Arc<RwLock<Store>>>,
+    Query(params): Query<IndexParams>,
+) -> Response {
+    let id: &str = params.id.as_deref().unwrap();
+    match store.write().await.delete(id).await {
+        Ok(()) => "question deleted".into_response(),
+        _err => "error in delete".into_response(),
+    }
+}
+
+//Handler for adding a question
+pub async fn handler_add(
+    //    State(appstate): HandlerAppState,
+    State(store): State<Arc<RwLock<Store>>>,
+    Query(params): Query<AddParams>,
+    //    session: Session,
+) -> Response {
+    let question = Question {
+        id: params.id.clone(),
+        title: params.new_title,
+        content: params.new_content,
+        tags: parse_tags(params.new_tags),
+    };
+
+    println!("ID: {}", question.id);
+    println!("TITLE: {}", question.title);
+    println!("CONTENT: {}", question.content);
+    println!("TAGS: {:?}", question.tags);
+
+    let mut store = store.write().await;
+    match store.add(question).await {
+        Ok(()) => "question added".into_response(),
+        _err => "Error in handler add".into_response(),
+    }
+}
+
+//Template that calls updateQuestion.html
+#[allow(dead_code)]
+#[derive(Template)]
+#[template(path = "updateQuestion.html")]
+pub struct UpdateTemplate {
+    stylesheet: &'static str,
+    //error: Option<String>,
+}
+
+impl UpdateTemplate {
+    fn new() -> Self {
+        Self {
+            stylesheet: "/addQuestion.css",
+        }
+    }
+}
+
+//Handler that calls UpdateTemplate to call updateQuestion.html
+pub async fn handler_rewrite() -> Response {
+    //  let error: Option<String> = "session_error".unwrap_or(None).clone;
+    print!("In handler rewrite");
+    (StatusCode::OK, UpdateTemplate::new()).into_response()
+}
+
+//Handler that calls update question
+pub async fn handler_update(
+    State(store): State<Arc<RwLock<Store>>>,
+    Query(params): Query<AddParams>,
+    //    Json(question): Json<Question>,
+) -> Response {
+    let question = Question {
+        id: params.id.clone(),
+        title: params.new_title,
+        content: params.new_content,
+        tags: parse_tags(params.new_tags),
+    };
+
+    //let update_question = Question::new(params.id,params.new_title.clone(),params.new_content,parse_tags(params.new_tags));
+
+    //drop(question);
+    //let id:&str = params.id.as_deref().unwrap();
+    //let mut store = store.write().await;
+    match store
+        .write()
+        .await
+        .update(&question.id, question.clone())
+        .await
+    {
+        Ok(()) => "question updated".into_response(),
+        Err(_e) => "Error in update".into_response(),
+    }
+}
+//INSERT INTO questions(id,title,content)
+//VALUES('color','color','Whats your favorite color'),
+//('first','first question','what is this class'),
+//('second','second question','what is your name');

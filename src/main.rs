@@ -7,11 +7,12 @@ mod store;
 #[allow(unused_imports)]
 use answer::*;
 use api::*;
+use askama::Template;
 use base_error::*;
 use question::*;
-use store::*;
-use std::error::Error;
 use std::collections::HashSet;
+use std::error::Error;
+use store::*;
 
 //#[warn(unused_imports)]
 use serde::{Deserialize, Serialize};
@@ -28,9 +29,9 @@ use tokio::{self, sync::RwLock};
 
 #[allow(unused_imports)]
 use axum::{
-    extract::{Path, Query,State},
+    extract::{Path, Query, State},
     http::StatusCode,
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
     routing::{delete, get, post, put},
     Json, Router,
 };
@@ -38,8 +39,8 @@ use axum::{
 #[allow(unused_imports)]
 use sqlx::{
     self,
-    postgres::{PgConnection,PgPool,PgRow,Postgres},
-    Pool,Row,
+    postgres::{PgConnection, PgPool, PgRow, Postgres},
+    Pool, Row,
 };
 extern crate serde_json;
 extern crate thiserror;
@@ -61,29 +62,41 @@ extern crate thiserror;
 #[allow(unused_variables)]
 #[tokio::main]
 async fn main() {
-    print!("PROGRAM STARTED 2\n");
+    println!("PROGRAM STARTED 2");
 
     //let apis = Router::new()
     //.route("/question",get(get_questions));
-     let store = Store::new().await.unwrap_or_else(|e| {
+    let store = Store::new().await.unwrap_or_else(|e| {
         tracing::error!("store: {}", e);
-        print!("PROGRAM IS EXITING 2\n");
+        println!("PROGRAM IS EXITING 2");
         std::process::exit(3);
     });
-    let store = Arc::new(RwLock::new(store)); 
-  //  let store = Arc::new(RwLock::new(store));
-    /* let apis = Router::new()
-        .route("/question", get(get_questions))
-        .route("/question/add", post(add_answer))
-        .route("/question/delete/:id", delete(delete_question))
-        .route("/question/:id", put(update_question)); */
-    print!("PROGRAM IS RUNNING\n");
+    let store = Arc::new(RwLock::new(store));
 
-    let web = Router::new().route("/", get(|| async { "Hello, World!" }))
+    //    let session_store = MemoryStore::default();
+    //    let session_layer = SessionManagerLayer::new(session_store)
+    //        .with_secure(false)
+    //        .with_expiry(Expiry::OnSessionEnd);
+    //  let store = Arc::new(RwLock::new(store));
+    /* let apis = Router::new()
+    .route("/question", get(get_questions))
+    .route("/question/add", post(add_answer))
+    .route("/question/delete/:id", delete(delete_question))
+    .route("/question/:id", put(update_question)); */
+    println!("PROGRAM IS RUNNING");
+
+    let web = Router::new()
         .route("/random", get(handler_random))
+        .route("/index.html", get(handler_random))
+        .route("/add", get(handler_add))
+        .route("/tell", get(handler_tell))
+        .route("/delete", get(handler_delete))
+        .route("/update", get(handler_rewrite))
+        .route("/rewrite", get(handler_update))
+        // .layer(session_layer)
         .with_state(store);
-    
-    print!("PROGRAM AFTER WEB\n");
+
+    println!("PROGRAM AFTER WEB");
 
     //.route("/question",get(get_questions))
     //.with_state(store);
@@ -91,10 +104,9 @@ async fn main() {
     //   let app = Router::new()
     //       .route("/", get(handler_index))
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    print!("PROGRAM AFTER LISTENER\n");
+    println!("PROGRAM AFTER LISTENER");
 
     axum::serve(listener, web).await.unwrap();
 
-    print!("PROGRAM SERVER\n");
-
+    println!("PROGRAM SERVER");
 }

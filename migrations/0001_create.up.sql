@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS questions (
 
 CREATE TABLE IF NOT EXISTS tags(
     id TEXT REFERENCES questions(id),
-    tag TEXT NOT NULL
+    tag TEXT
 );
+

@@ -15,7 +15,7 @@ services:
     ports:
       - 3000:3000
     environment:
-      - PG_DBNAME=QandA
+      - PG_DBNAME=postgres
       - PG_HOST=db
       - PG_USER=postgres
       - PG_PASSWORDFILE=/run/secrets/db-password

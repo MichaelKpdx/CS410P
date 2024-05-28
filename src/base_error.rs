@@ -24,7 +24,7 @@ impl From<std::io::Error> for QuestionBaseErr {
     }
 }
 
-impl From<sqlx::Error> for QuestionBaseErr{
+impl From<sqlx::Error> for QuestionBaseErr {
     fn from(e: sqlx::Error) -> Self {
         QuestionBaseErr::DatabaseError(e.to_string())
     }
