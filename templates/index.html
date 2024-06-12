@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <title>QandA</title>
+    </head>
+    <body>
+        <h1>Question</h1>
+
+        {%- if let Some(thequestion) = question -%}
+        <span>{{thequestion.id}}</span><br/> 
+        <span>{{thequestion.title }}</span><br/>
+        <span>{{thequestion.content}}</span><br/>
+        <span>{{thequestion.answer}}</span><br/>
+
+        [id: {{thequestion.id -}}
+        {%- if let Some(tags) = tags -%}; tags={{- tags -}}{%- endif -%}
+        ]
+
+        {%- endif -%}
+
+        <form method="get" action="/random">
+            <input type="submit" value="Another"/>
+        </form>
+
+        <form method="get" action="/update">
+            <input type="submit" value="Update"/>
+        </form>
+
+        <form method="get" action="/tell">
+            <input type="submit" value="Ask"/>
+        </form>
+
+        <form method="get" action="/random">
+            <input type="text" name="id"/>
+            <input type="submit" value="find"/>
+        </form>
+
+        <form method="get" action="/delete">
+            <input type="text" name="id"/>
+            <input type="submit" value="delete question"/>
+        </form>
+    </body>
+</html>
