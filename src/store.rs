@@ -15,7 +15,6 @@ pub struct Store(pub Pool<Postgres>);
 //type QuestionMap = HashMap<
 #[allow(dead_code)]
 impl Store {
-
     //Goes to a question in the database then returns the question
     async fn to_question(&self, row: &PgRow) -> Result<Question, sqlx::Error> {
         let id = row.get("id");

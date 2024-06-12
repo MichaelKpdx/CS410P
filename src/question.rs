@@ -34,7 +34,13 @@ pub struct Question {
     pub tags: Option<HashSet<String>>,
 }
 impl Question {
-    pub fn new(id: String, title: String, content: String, answer: String, tags: Option<HashSet<String>>) -> Self {
+    pub fn new(
+        id: String,
+        title: String,
+        content: String,
+        answer: String,
+        tags: Option<HashSet<String>>,
+    ) -> Self {
         Question {
             id,
             title,

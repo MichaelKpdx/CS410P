@@ -30,18 +30,18 @@ use tokio::{self, sync::RwLock};
 #[allow(unused_imports)]
 use axum::{
     extract::{Path, Query, State},
-    http::{StatusCode,Method},
+    http::{Method, StatusCode},
     response::{IntoResponse, Redirect, Response},
     routing::{delete, get, post, put},
     Json, Router,
 };
-use tower_http::cors;
 #[allow(unused_imports)]
 use sqlx::{
     self,
     postgres::{PgConnection, PgPool, PgRow, Postgres},
     Pool, Row,
 };
+use tower_http::cors;
 extern crate serde_json;
 extern crate thiserror;
 
@@ -64,14 +64,12 @@ extern crate thiserror;
 async fn main() {
     println!("PROGRAM STARTED 4");
 
-
     let cors = cors::CorsLayer::new()
-    .allow_methods([Method::GET])
-    .allow_origin(cors::Any);
+        .allow_methods([Method::GET])
+        .allow_origin(cors::Any);
     //let apis = Router::new()
     //.route("/question",get(get_questions));
-    let apis = Router::new()
-    .route("/question",get(question));
+    let apis = Router::new().route("/question", get(question));
 
     let store = Store::new().await.unwrap_or_else(|e| {
         tracing::error!("store: {}", e);
@@ -93,14 +91,14 @@ async fn main() {
     println!("PROGRAM IS RUNNING");
 
     let web = Router::new()
-        .route("/random", get(handler_random))
+        .route("/", get(handler_random))
         .route("/index.html", get(handler_random))
         .route("/add", get(handler_add))
         .route("/tell", get(handler_tell))
         .route("/delete", get(handler_delete))
         .route("/update", get(handler_rewrite))
         .route("/rewrite", get(handler_update))
-        .nest("/api/v1",apis)
+        .nest("/api/v1", apis)
         .layer(cors)
         // .layer(session_layer)
         .with_state(store);

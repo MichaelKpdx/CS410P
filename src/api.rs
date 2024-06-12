@@ -210,7 +210,7 @@ pub async fn handler_add(
 }
 
 //API get random for yew app
-pub async fn question(State(store): State<Arc<RwLock<Store>>>,) -> Response {
+pub async fn question(State(store): State<Arc<RwLock<Store>>>) -> Response {
     match store.read().await.get_random().await {
         Ok(question) => question.into_response(),
         _err => "No content in question".into_response(),

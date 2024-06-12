@@ -48,10 +48,10 @@ pub fn question(question: &QuestionProps) -> Html {
     html! { <>
         <div class = "question">
             <span>{"QandA!"}</span><br/>
-            <span>{question.id.clone()}</span><br/>
-            <span>{question.title.clone()}</span><br/>
-            <span>{question.content.clone()}</span><br/>
-            <span>{question.answer.clone()}</span><br/>
+            <span>{format!("ID: {}",question.id.clone())}</span><br/>
+            <span>{format!("Title: {}",question.title.clone())}</span><br/>
+            <span>{format!("Content: {}", question.content.clone())}</span><br/>
+            <span>{format!("Answer: {}",question.answer.clone())}</span><br/>
         </div>
 
         {format!("[id: {}", &question.id)}
